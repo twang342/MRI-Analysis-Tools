@@ -1,0 +1,44 @@
+macro "Stack profile Plot" {
+    collectedValues="";
+    ymin = 0;
+    ymax = 255;
+    saveSettings();
+    if (nSlices==1)
+      exit("Stack required");
+    run("Profile Plot Options...", 
+      "width=400 height=200 minimum="+ymin+" maximum="+ymax+" fixed");
+    setBatchMode(true);
+    stack1 = getImageID;
+    stack2 = 0;
+    n = nSlices;
+    for (i=1; i<=n; i++) {
+        showProgress(i, n);
+        selectImage(stack1);
+        setSlice(i);
+        run("Clear Results");
+          profile = getProfile();
+        for (j=0; j<profile.length; j++) {
+           collectedValues=collectedValues+profile[j] + "\t"; 
+        } 
+        collectedValues=collectedValues+"\n"; 
+              
+        run("Plot Profile");
+        run("Copy");
+        w = getWidth; h = getHeight;
+        close();
+        if (stack2==0) {
+            newImage("Plots", "8-bit", w, h, 1);
+            stack2 = getImageID;
+        } else {
+            selectImage(stack2);
+            run("Add Slice");
+        }
+        run("Paste");
+    }
+    
+    f = File.open("_____(set directory)_____/ProfileValues.txt");
+    print(f, collectedValues);
+    setSlice(1);
+    setBatchMode(false);
+    restoreSettings();
+}

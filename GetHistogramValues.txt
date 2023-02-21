@@ -1,0 +1,35 @@
+// "GetHistogramValues"
+//
+//This macro collects histogram values for ROIs series of an image stack. Pixels counts at each 
+//grey values are collected for each ROI and placed into a spreadsheet. 
+
+
+macro "GetHistogramValues" {
+    collectedValues="";
+    if (nSlices==1)
+      exit("Stack required");
+    setBatchMode(true);
+    stack = getImageID;
+    n = nSlices;
+    nBins = 256;
+	
+    for (i=1; i<=n; i++) {
+        showProgress(i, n);
+        selectImage(stack);
+        setSlice(i);
+        run("Clear Results");
+	roiManager("Select", i-1); 
+        getHistogram(values, counts, nBins);
+        for (j=0; j<counts.length; j++) {
+           collectedValues=collectedValues+counts[j] + "\t"; 
+        } 
+	
+        collectedValues=collectedValues+"\n";              
+    }
+
+    f = File.open("_______(set directory)_______/HistogramValues.txt");
+    print(f, collectedValues);
+    setSlice(1);
+    setBatchMode(false);
+
+}
